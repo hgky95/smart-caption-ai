@@ -1,2 +1,6 @@
-.env
-venv
+.idea
+virtual-env
+server/resources/.cache
+server/.env
+read-simplify.iml
+workspace.xml
