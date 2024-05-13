@@ -1,6 +1,7 @@
 .idea
 virtual-env
-server/resources/.cache
+server/.cache/
 server/.env
+server/resources/__pycache__
 read-simplify.iml
 workspace.xml
