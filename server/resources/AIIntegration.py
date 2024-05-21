@@ -7,6 +7,7 @@ from autogen.agentchat.contrib.web_surfer import WebSurferAgent
 
 from flask_restful import Resource
 
+from server.resources.Chat import Chat
 
 
 class AIIntegration(Resource):
@@ -83,12 +84,21 @@ class AIIntegration(Resource):
             max_consecutive_auto_reply=0,
         )
 
+        chat_queues = []
+        summary_chat = Chat(web_surfer, f"Summarize the content of this website {article_url}", False).toDict()
+        chat_queues.append(summary_chat)
+
         img_tags = []
         IMAGE_TAG_PREFIX = '<img'
         CLOSE_TAG_SUFFIX = '>'
 
         for img_url in images_url:
-            img_tags.append(IMAGE_TAG_PREFIX + ' ' + img_url['url'] + CLOSE_TAG_SUFFIX)
+            img_tag_formatted = IMAGE_TAG_PREFIX + ' ' + img_url['url'] + CLOSE_TAG_SUFFIX
+            message = f"""
+                           You have the context of the image from web_surfer.
+                           Now, you need to answer: what is this picture of and describe everything in it based on the given context? {img_tag_formatted}>
+                       """
+            chat_queues.append(Chat(image_agent, message, False).toDict())
 
         img_tags_string = ', '.join(img_tags)
 
@@ -97,20 +107,7 @@ class AIIntegration(Resource):
            Now, you need to answer: what is this picture of and describe everything in it based on the given context? {img_tags_string}>
        """
 
-        chat_results = user_proxy.initiate_chats(
-            [
-                {
-                    "recipient": web_surfer,
-                    "message": f"Summarize the content of this website {article_url}",
-                    "silent": False,
-                },
-                {
-                    "recipient": image_agent,
-                    "message": message,
-                    "silent": False,
-                }
-            ]
-        )
+        chat_results = user_proxy.initiate_chats(chat_queues)
 
         autogen.runtime_logging.stop()
 
