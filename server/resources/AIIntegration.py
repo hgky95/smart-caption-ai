@@ -1,3 +1,5 @@
+import json
+
 import autogen
 from flask import request, jsonify
 from autogen.agentchat.contrib.multimodal_conversable_agent import MultimodalConversableAgent
@@ -13,6 +15,10 @@ class AIIntegration(Resource):
         data = request.get_json()
         article_url = data['article_url']
         images_url = data['images_url']
+
+        # Start logging
+        logging_session_id = autogen.runtime_logging.start(config={"dbname": "logs.db"})
+        print("Logging session ID: " + str(logging_session_id))
 
         config_list_3 = autogen.config_list_from_dotenv(
             dotenv_file_path="../.env",
@@ -77,12 +83,21 @@ class AIIntegration(Resource):
             max_consecutive_auto_reply=0,
         )
 
+        img_tags = []
+        IMAGE_TAG_PREFIX = '<img'
+        CLOSE_TAG_SUFFIX = '>'
+
+        for img_url in images_url:
+            img_tags.append(IMAGE_TAG_PREFIX + ' ' + img_url['url'] + CLOSE_TAG_SUFFIX)
+
+        img_tags_string = ', '.join(img_tags)
+
         message = f"""
            You have the context of the image from web_surfer.
-           Now, you need to answer: what is this picture of and describe everything in it based on the given context? <img {images_url[0]['url']}> <img {images_url[1]['url']}>
+           Now, you need to answer: what is this picture of and describe everything in it based on the given context? {img_tags_string}>
        """
 
-        chat_result = user_proxy.initiate_chats(
+        chat_results = user_proxy.initiate_chats(
             [
                 {
                     "recipient": web_surfer,
@@ -97,6 +112,8 @@ class AIIntegration(Resource):
             ]
         )
 
-        img_summary = chat_result[-1].summary
+        autogen.runtime_logging.stop()
 
-        return {"message": img_summary}
+        chat_summary_list = [{'summary': chat_result.summary.replace('\n', ' ')} for chat_result in chat_results]
+
+        return {"data": chat_summary_list}
