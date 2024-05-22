@@ -34,9 +34,11 @@ class AIIntegration(Resource):
 
         autogen.runtime_logging.stop()
 
+        # Only get the images summary
+        chat_img_results = chat_results[1:]
         # Format response
-        chat_summary_list = [{'summary': chat_result.summary.replace('\n', ' ')} for chat_result in chat_results]
-        return {"data": chat_summary_list}
+        chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
+        return {"data": chat_img_summary_list}
 
     def create_user_proxy_agent(self):
         user_proxy = autogen.UserProxyAgent(
