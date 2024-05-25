@@ -1,10 +1,12 @@
 import autogen
-from flask import request, jsonify
+from flask import request
 from autogen.agentchat.contrib.multimodal_conversable_agent import MultimodalConversableAgent
 from autogen.agentchat.contrib.web_surfer import WebSurferAgent
 
 from flask_restful import Resource
 
+from server.resources.AIConfiguration import AIConfiguration
+from server.resources.Chat import Chat
 
 
 class AIIntegration(Resource):
@@ -14,89 +16,61 @@ class AIIntegration(Resource):
         article_url = data['article_url']
         images_url = data['images_url']
 
-        config_list_3 = autogen.config_list_from_dotenv(
-            dotenv_file_path="../.env",
-            model_api_key_map={"gpt-3.5-turbo": "OPENAI_API_KEY"},
-            #model_api_key_map={"gpt-4o": "OPENAI_API_KEY"},
-            filter_dict={
-                "model": {
-                    "gpt-3.5-turbo",
-                    #"gpt-4o",
-                }
-            }
-        )
+        # Start logging
+        logging_session_id = autogen.runtime_logging.start(config={"dbname": "logs.db"})
+        print("Logging session ID: " + str(logging_session_id))
 
-        web_surfer_llm_config = {
-            "timeout": 600,
-            "cache_seed": 11,
-            "config_list": config_list_3,
-            "temperature": 0,
-        }
+        # Create agents
+        web_surfer = self.create_web_surfer_agent()
+        image_agent = self.create_image_agent()
+        user_proxy = self.create_user_proxy_agent()
 
-        summarizer_llm_config = {
-            "timeout": 600,
-            "cache_seed": 33,
-            "config_list": config_list_3,
-            "temperature": 0,
-        }
+        # Create chat queues
+        chat_queues = []
+        summary_chat = Chat(web_surfer, f"Summarize the content of this website {article_url}", False).toDict()
+        chat_queues.append(summary_chat)
+        self.add_image_chat_to_queues(chat_queues, image_agent, images_url)
+        chat_results = user_proxy.initiate_chats(chat_queues)
 
-        web_surfer = WebSurferAgent(
-            "web_surfer",
-            llm_config=web_surfer_llm_config,
-            summarizer_llm_config=summarizer_llm_config,
-        )
+        autogen.runtime_logging.stop()
 
-        config_list_4 = autogen.config_list_from_dotenv(
-            dotenv_file_path="../.env",
-            #model_api_key_map={"gpt-4-turbo": "OPENAI_API_KEY"},
-            model_api_key_map={"gpt-4o": "OPENAI_API_KEY"},
-            filter_dict={
-                "model": {
-                    #"gpt-4-turbo",
-                    "gpt-4o",
-                }
-            }
-        )
+        # Only get the images summary
+        chat_img_results = chat_results[1:]
+        # Format response
+        chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
+        return {"data": chat_img_summary_list}
 
-        image_llm_config = {
-            "config_list": config_list_4,
-            "temperature": 0.5,
-            "max_tokens": 500,
-            "cache_seed": 42
-        }
-
-        image_agent = MultimodalConversableAgent(
-            name="image-explainer",
-            llm_config=image_llm_config
-        )
-
+    def create_user_proxy_agent(self):
         user_proxy = autogen.UserProxyAgent(
             name="user_proxy",
             human_input_mode="NEVER",
             code_execution_config=False,
             max_consecutive_auto_reply=0,
         )
+        return user_proxy
 
-        message = f"""
-           You have the context of the image from web_surfer.
-           Now, you need to answer: what is this picture of and describe everything in it based on the given context? <img {images_url[0]['url']}> <img {images_url[1]['url']}>
-       """
-
-        chat_result = user_proxy.initiate_chats(
-            [
-                {
-                    "recipient": web_surfer,
-                    "message": f"Summarize the content of this website {article_url}",
-                    "silent": False,
-                },
-                {
-                    "recipient": image_agent,
-                    "message": message,
-                    "silent": False,
-                }
-            ]
+    def create_image_agent(self):
+        image_agent = MultimodalConversableAgent(
+            name="image-explainer",
+            llm_config=AIConfiguration.image_llm_config
         )
+        return image_agent
 
-        img_summary = chat_result[-1].summary
+    def create_web_surfer_agent(self):
+        web_surfer = WebSurferAgent(
+            "web_surfer",
+            llm_config=AIConfiguration.web_surfer_llm_config,
+            summarizer_llm_config=AIConfiguration.summarizer_llm_config,
+        )
+        return web_surfer
 
-        return {"message": img_summary}
+    def add_image_chat_to_queues(self, chat_queues, image_agent, images_url):
+        image_tag_prefix = '<img'
+        close_tag_suffix = '>'
+        for img_url in images_url:
+            img_tag_formatted = image_tag_prefix + ' ' + img_url['url'] + close_tag_suffix
+            message = f"""
+                           You have the context of the image from web_surfer.
+                           Now, you need to answer: what is this picture of and describe everything in it based on the given context? {img_tag_formatted}>
+                       """
+            chat_queues.append(Chat(image_agent, message, False).toDict())
