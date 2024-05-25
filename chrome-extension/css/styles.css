@@ -1,0 +1,149 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px 20px 10px 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.place-holder-group {
+    height: 30px;
+    min-width: 92%;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.checkbox-group label {
+    margin-right: 10px;
+}
+
+.display-field {
+    padding: 2px;
+    border: 1px solid #ccc;
+    background-color: white;
+    width: 92%;
+    height: 30px;
+    margin: 5px;
+    font-size: 12px;
+}
+
+.button {
+    background-color: #0376c9;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 25px;
+    width: 145px;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    max-width: 33%;
+    margin: 5px 0 5px 0;
+}
+
+.max-length-label {
+    min-width: 60%;
+    margin-right: 2px;
+}
+
+input.max-length-counter {
+    height: auto;
+    max-width: 20%;
+    text-align: center;
+}
+
+button.max-length-counter-btn {
+    display: block;
+    background-color: #0376c9;
+    color: white;
+    width: 25px;
+    border: none;
+    border-radius: 25px;
+    margin: 0 2px 1px 3px;
+}
+
+.pw-version-label {
+    min-width: 60%;
+    margin-right: 2px;
+}
+
+input.pw-version-counter {
+    height: auto;
+    max-width: 20%;
+    text-align: center;
+}
+
+button.pw-version-counter-btn {
+    display: block;
+    background-color: #0376c9;
+    color: white;
+    width: 25px;
+    border: none;
+    border-radius: 25px;
+    margin: 0 2px 1px 3px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.master-password-input {
+    display: block;
+}
+
+.bi.bi-eye-slash {
+    margin-left: -25px;
+    margin-top: 9px;
+    font-size: 1.5em;
+}
+
+.generated-password-container {
+    display: flex;
+}
+
+.bi.bi-eye-slash.generatedPassword {
+    margin-left: -48px;
+    margin-right: 20px;
+    margin-top: 14px;
+    font-size: 1.5em;
+}
+
+.bi.bi-copy {
+    margin-left: -14px;
+    margin-top: 14px;
+    font-size: 1.2em;
+}
+
+#custom-tooltip {
+    display: none;
+    margin-left: 5px;
+    background-color: black;
+    border-radius: 4px;
+    color: white;
+    padding: 3px;
+}
