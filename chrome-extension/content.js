@@ -1,24 +1,13 @@
 // Function to create iframe with modified content
 function createIframeWithModifiedContent() {
-    // Create a full-page overlay
+    // Add a gray overlay to cover the entire page
     const overlay = document.createElement('div');
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Semi-transparent black overlay
-    overlay.style.zIndex = '10000';
+    overlay.className = 'background-overlay';
     document.body.appendChild(overlay);
 
     // Create an iframe element
     const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.top = '50%';
-    iframe.style.left = '50%';
-    iframe.style.transform = 'translate(-50%, -50%)'; // Center the iframe
-    iframe.style.zIndex = '10001'; // Place iframe above the overlay
-    iframe.style.border = 'none';
+    iframe.className = 'iframeContainer'; // Apply iframe container style from CSS
     document.body.appendChild(iframe);
 
     // Fetch the current page content
@@ -33,9 +22,23 @@ function createIframeWithModifiedContent() {
             const article = new Readability(doc).parse();
             console.log("After using Readability lib: ", article);
 
+            // Create a styled container for the iframe content
+            const iframeContent = `
+                <html>
+                    <head>
+                        <link rel="stylesheet" type="text/css" href="${chrome.runtime.getURL('css/iframeStyle.css')}">
+                    </head>
+                    <body>
+                        <div class="body-content">
+                            ${article.content}
+                        </div>
+                    </body>
+                </html>
+            `;
+
             // Write the modified content to the iframe
             iframe.contentDocument.open();
-            iframe.contentDocument.write(article.content);
+            iframe.contentDocument.write(iframeContent);
             iframe.contentDocument.close();
         })
         .catch(error => {

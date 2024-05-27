@@ -26,7 +26,14 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js", "Readability.js"],
+      "css": ["css/style.css"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["css/iframeStyle.css"],
+      "matches": ["<all_urls>"]
     }
   ]
 }
