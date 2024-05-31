@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Read Simplify",
   "version": "1.0",
-  "description": "Need to update",
+  "description": "Easy-to-use app simplifies reading by removing unnecessary information and can even convert the text into an image",
   "permissions": [
     "activeTab",
     "scripting"
