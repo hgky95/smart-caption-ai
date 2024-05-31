@@ -2,6 +2,7 @@
 virtual-env
 server/.cache/
 server/.env
+server/logs.db
 server/resources/__pycache__
 read-simplify.iml
 workspace.xml
