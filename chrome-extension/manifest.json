@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Read Simplify",
+  "version": "1.0",
+  "description": "Easy-to-use app simplifies reading by removing unnecessary information and can even convert the text into an image",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "Readability.js"],
+      "css": ["css/style.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["css/iframeStyle.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
