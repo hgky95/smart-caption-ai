@@ -7,11 +7,14 @@ from flask_restful import Resource
 
 from server.resources.AIConfiguration import AIConfiguration
 from server.resources.Chat import Chat
+import time
 
 
 class AIIntegration(Resource):
 
     def post(self):
+        start_time = time.time()
+
         data = request.get_json()
         article_url = data['article_url']
         images_url = data['images_url']
@@ -38,6 +41,10 @@ class AIIntegration(Resource):
         chat_img_results = chat_results[1:]
         # Format response
         chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
+
+        end_time = time.time()
+        consumed_time = end_time - start_time
+        print(f"Time consumed: {consumed_time} seconds")
         return {"data": chat_img_summary_list}
 
     def create_user_proxy_agent(self):
