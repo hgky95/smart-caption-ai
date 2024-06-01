@@ -5,3 +5,7 @@ div.body-content {
     padding: 50px;
     overflow: hidden;
 }
+
+img {
+    max-width: 100%;
+}
