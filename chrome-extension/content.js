@@ -36,6 +36,7 @@ async function createIframeWithModifiedContent() {
                         <h1>${article.title}</h1>
                         ${article.content}
                     </div>
+                    <button id="tts" style="position: absolute; top: 10px; right: 10px;">Speak</button>
                 </body>
             </html>
         `;
@@ -45,6 +46,8 @@ async function createIframeWithModifiedContent() {
         iframe.contentDocument.write(iframeContent);
         iframe.contentDocument.close();
 
+        const speakButton = iframe.contentDocument.getElementById('tts');
+        speakButton.addEventListener('click', textToSpeech);
         return article.content;
     } catch (error) {
         console.error('Error fetching and modifying content:', error);
@@ -99,6 +102,18 @@ function convertImagesToText(htmlContent) {
             updateImageAlts(imageSummaries)
         })
         .catch((error) => console.error(error));
+}
+
+function textToSpeech() {
+    const iframe = document.getElementById('iframeContainer');
+    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    const textContent = iframeDocument.querySelector('.body-content').textContent;
+
+    const utterance = new SpeechSynthesisUtterance(textContent);
+    // const speedControl = iframeDocument.querySelector('.navigation-controls input[type="range"]');
+    // utterance.rate = speedControl.value;
+
+    window.speechSynthesis.speak(utterance);
 }
 
 // Listen for messages from the background script
