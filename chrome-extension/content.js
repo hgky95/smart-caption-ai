@@ -89,7 +89,14 @@ function updateImageAlts(imageSummaries) {
 
     for (let i = 0; i < imageSummaries.length && i < images.length; i++) {
         images[i].alt = imageSummaries[i];
-        console.log('Updated alt for image ' + (i + 1));
+
+        // Create a new <p> element for the summarization
+        const summaryParagraph = iframeDocument.createElement('p');
+        summaryParagraph.innerHTML = `Starting image description: <br> ${imageSummaries[i]} <br> Ending image description.`;
+
+        // Insert the <p> element next to the image
+        images[i].parentNode.insertBefore(summaryParagraph, images[i].nextSibling);
+        console.log('Updated summarization for image ' + (i + 1));
     }
 }
 
