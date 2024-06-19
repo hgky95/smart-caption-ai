@@ -16,7 +16,6 @@ async function createIframeWithModifiedContent() {
 
     // Fetch the current page content
     try {
-        // Fetch the current page content
         const response = await fetch(window.location.href);
         const html = await response.text();
 
@@ -30,13 +29,24 @@ async function createIframeWithModifiedContent() {
             <html>
                 <head>
                     <link rel="stylesheet" type="text/css" href="${chrome.runtime.getURL('css/iframeStyle.css')}">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
                 </head>
                 <body>
                     <div class="body-content">
                         <h1>${article.title}</h1>
                         ${article.content}
                     </div>
-                    <button id="tts" style="position: absolute; top: 10px; right: 10px;">Speak</button>
+                    <i id="tts" class="bi bi-volume-up-fill" style="position: absolute; top: 10px; right: 10px;"></i>
+                    <div id="tts-controls" class="tts-controls" style="position: absolute; display: none;">
+                        <i id="play-pause" class="bi-pause-circle-fill"></i>
+                        <div class="speed-controls">
+                            <button id="speed-075" class="speed-button" value="0.75">0.75x</button>
+                            <button id="speed-1" class="speed-button selected" value="1">1x</button>
+                            <button id="speed-125" class="speed-button" value="1.25">1.25x</button>
+                            <button id="speed-15" class="speed-button" value="1.5">1.5x</button>
+                            <button id="speed-2" class="speed-button" value="2">2x</button>
+                        </div>
+                    </div>
                 </body>
             </html>
         `;
@@ -46,8 +56,16 @@ async function createIframeWithModifiedContent() {
         iframe.contentDocument.write(iframeContent);
         iframe.contentDocument.close();
 
-        const speakButton = iframe.contentDocument.getElementById('tts');
-        speakButton.addEventListener('click', textToSpeech);
+        // Wait for the iframe content to be fully loaded
+        iframe.onload = () => {
+            const speakButton = iframe.contentDocument.getElementById('tts');
+            speakButton.addEventListener('click', () => {
+                textToSpeech();
+                const ttsControls = iframe.contentDocument.getElementById('tts-controls');
+                ttsControls.style.display = 'block';
+            });
+        };
+
         return article.content;
     } catch (error) {
         console.error('Error fetching and modifying content:', error);
@@ -104,16 +122,57 @@ function convertImagesToText(htmlContent) {
         .catch((error) => console.error(error));
 }
 
+let currentUtterance;
+let synth = window.speechSynthesis;
+
+let isPaused = false;
+
 function textToSpeech() {
     const iframe = document.getElementById('iframeContainer');
     const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
     const textContent = iframeDocument.querySelector('.body-content').textContent;
 
-    const utterance = new SpeechSynthesisUtterance(textContent);
-    // const speedControl = iframeDocument.querySelector('.navigation-controls input[type="range"]');
-    // utterance.rate = speedControl.value;
+    if (synth.speaking) {
+        console.error('SpeechSynthesisUtterance is already speaking.');
+        return;
+    }
 
-    window.speechSynthesis.speak(utterance);
+    currentUtterance = new SpeechSynthesisUtterance(textContent);
+    const playPauseButton = iframeDocument.getElementById('play-pause');
+    const speedButtons = iframeDocument.querySelectorAll('.speed-button');
+
+    playPauseButton.addEventListener('click', () => {
+        if (synth.speaking) {
+            if (isPaused) {
+                synth.resume();
+                playPauseButton.className = "bi bi-pause-circle-fill";
+                isPaused = false;
+            } else {
+                synth.pause();
+                playPauseButton.className = "bi bi-play-circle-fill";
+                isPaused = true;
+            }
+        } else {
+            synth.speak(currentUtterance);
+            playPauseButton.className = "bi bi-play-circle-fill";
+        }
+    });
+
+    speedButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            speedButtons.forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+            if (synth.speaking) {
+                synth.cancel();
+                currentUtterance.rate = parseFloat(button.value);
+                synth.speak(currentUtterance);
+            }
+        });
+    });
+
+    // Set initial rate
+    currentUtterance.rate = parseFloat(iframeDocument.querySelector('.speed-button.selected').value);
+    synth.speak(currentUtterance);
 }
 
 // Listen for messages from the background script
