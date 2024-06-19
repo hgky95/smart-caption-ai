@@ -36,7 +36,8 @@ async function createIframeWithModifiedContent() {
                         <h1>${article.title}</h1>
                         ${article.content}
                     </div>
-                    <i id="tts" class="bi bi-volume-up-fill" style="position: absolute; top: 10px; right: 10px;"></i>
+                    
+                    <button id="tts" class="bi bi-volume-up-fill" style="position: absolute; top: 10px; right: 10px;"></button>
                     <div id="tts-controls" class="tts-controls" style="position: absolute; display: none;">
                         <i id="play-pause" class="bi-pause-circle-fill"></i>
                         <div class="speed-controls">
@@ -59,6 +60,8 @@ async function createIframeWithModifiedContent() {
         // Wait for the iframe content to be fully loaded
         iframe.onload = () => {
             const speakButton = iframe.contentDocument.getElementById('tts');
+            // disable speak button by default until the image summarization returning
+            speakButton.disabled = true;
             speakButton.addEventListener('click', () => {
                 textToSpeech();
                 const ttsControls = iframe.contentDocument.getElementById('tts-controls');
@@ -98,6 +101,8 @@ function updateImageAlts(imageSummaries) {
         images[i].parentNode.insertBefore(summaryParagraph, images[i].nextSibling);
         console.log('Updated summarization for image ' + (i + 1));
     }
+    const speakButton = iframe.contentDocument.getElementById('tts');
+    speakButton.disabled = false;
 }
 
 function convertImagesToText(htmlContent) {
