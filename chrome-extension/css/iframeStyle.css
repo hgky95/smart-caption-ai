@@ -6,6 +6,10 @@ div.body-content {
     overflow: hidden;
 }
 
+h1 {
+    line-height: 1;
+}
+
 img {
     max-width: 100%;
 }
