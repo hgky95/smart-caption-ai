@@ -30,7 +30,10 @@ class AIIntegration(Resource):
 
         # Create chat queues
         chat_queues = []
-        summary_chat = Chat(web_surfer, f"Summarize the content of this website {article_url}", False).toDict()
+        summary_chat = Chat(web_surfer, f"""Summarize the content of this website {article_url}
+                            Ensure the summary is accurate and related to the information in the website.
+                            You do not need to include ' I've opened a new tab in my browser and navigated to the provided URL.'.
+                            """, False).toDict()
         chat_queues.append(summary_chat)
         self.add_image_chat_to_queues(chat_queues, image_agent, images_url)
         chat_results = user_proxy.initiate_chats(chat_queues)
