@@ -2,7 +2,8 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
-from resources.AIIntegration import AIIntegration
+
+from server.resources.AIIntegration import AIIntegration
 
 app = Flask(__name__)
 # Allow CORS for all domains at this time

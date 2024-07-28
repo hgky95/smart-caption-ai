@@ -5,8 +5,8 @@ from autogen.agentchat.contrib.web_surfer import WebSurferAgent
 
 from flask_restful import Resource
 
-from server.resources.AIConfiguration import AIConfiguration
-from server.resources.Chat import Chat
+from .AIConfiguration import AIConfiguration
+from .Chat import Chat
 import time
 
 
