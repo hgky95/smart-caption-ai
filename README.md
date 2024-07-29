@@ -57,6 +57,12 @@ images_url: list of images url in the article
 2. Enable 'Developer Mode' on the top-right corner
 3. Click on 'Load unpacked' on the top-left corner
 4. Select the 'chrome-extension' folder that you cloned from previous step. Then the extension will be listed as below:
+   
 ![image](https://github.com/user-attachments/assets/da3a8044-1d96-4111-8356-df6149ae4986)
-5. Open Extension and 'pin' it for easy to use.
-6. Now, you can open an article (eg. cbc.ca), then click on the icon of this tool.
+
+6. Open Extension and 'pin' it for easy to use.
+7. Now, you can open an article (eg. [GitHub Pages](https://pages.github.com/)), then click on the icon of this tool.
+Result as below:
+
+![record-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/4ca7937d-abad-4fe8-a566-22e8298284e7)
+
