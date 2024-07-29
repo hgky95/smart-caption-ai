@@ -66,3 +66,8 @@ Result as below:
 
 ![record-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/4ca7937d-abad-4fe8-a566-22e8298284e7)
 
+## Future Works
+1. Fix issues with displaying images on some websites 
+    - This tool is not compatible with all websites. Some websites are built with different iframe structures that lead to the tool being unable to display all of the images.
+
+2. Optimize processing time by sending the article content directly instead of the URL to reduce 'surfing' time of the agent.
