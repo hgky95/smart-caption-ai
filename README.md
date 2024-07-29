@@ -17,27 +17,25 @@ Besides generating image captioning, the tool also simplify the webpage (removin
 
 ## Installation
 1) Clone the repository
-2) Install Python: https://www.python.org/downloads/
-3) Setup Python virtual environment: `python -m venv .venv`
-4) Activate virtual environment:
+2) Go to smart-caption-ai folder
+3) Install Python: https://www.python.org/downloads/
+4) Setup Python virtual environment: `python -m venv .venv`
+5) Activate virtual environment:
 
     On Windows: `.venv\Scripts\activate`
 
     On Unix or MacOS: `source .venv/bin/activate`
-5) Install library dependencies: `pip install -r requirement.txt`
+6) Install library dependencies: `pip install -r requirements.txt`
 
 ## Backend Setup
 
 ### If you plan to use OpenAI
-1. Go to smart-caption-ai/server folder
-2. Open .env file, and declare your `OPENAI_API_KEY`
-3. Run the app by: `python main.py`
-4. Open Chrome browser with Developer mode and load the 
+1. Open .env file in server folder, and declare your `OPENAI_API_KEY`
+2. Run the app by: `python -m server.main`
 
 ### If you plan to use Open source LLM: llama, phi3, llava, etc
-1. Go to smart-caption-ai/server folder
-2. Open .env file, and declare your server url which host the LLM: `BASE_URL`
-3. Run the app by: `python main.py`
+1. Open .env file in server folder, and declare your server url which host the LLM: `BASE_URL`
+2. Run the app by: `python -m server.main`
 
 To verify the backend running, you can query by:
 
@@ -56,9 +54,9 @@ images_url: list of images url in the article
 
 ## Frontend Setup (chrome extension)
 1. Open Chrome browser / Settings / Extensions / Manage Extensions
-2. Click on 'Load unpacked' on the top-left corner
-3. Select the 'chrome-extension' folder that you cloned from previous step. Then the extension will be listed as below:
+2. Enable 'Developer Mode' on the top-right corner
+3. Click on 'Load unpacked' on the top-left corner
+4. Select the 'chrome-extension' folder that you cloned from previous step. Then the extension will be listed as below:
 ![image](https://github.com/user-attachments/assets/da3a8044-1d96-4111-8356-df6149ae4986)
-4. Open Extension and 'pin' it for easy to use.
-5. Now, you can open an article (eg. cbc.ca), then click on the icon of this tool.
-
+5. Open Extension and 'pin' it for easy to use.
+6. Now, you can open an article (eg. cbc.ca), then click on the icon of this tool.
