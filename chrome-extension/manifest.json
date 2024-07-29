@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Read Simplify",
+  "name": "SmartCaption AI",
   "version": "1.0",
-  "description": "Easy-to-use app simplifies reading by removing unnecessary information and can even convert the text into an image",
+  "description": "Generating image captions that are more accurate and relevant to the content of the webpage you are reading.",
   "permissions": [
     "activeTab",
     "scripting"
