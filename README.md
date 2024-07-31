@@ -1,4 +1,7 @@
 # Smart Caption AI
+This project is an implementation of a research paper in which I work with Dr. Randy Lin to leverage LLMs to generate accurate and relevant image captions.
+
+## Introduction
 Blind individuals and those with severe vision impairments face significant challenges in navigating web content, especially with understanding images. Since images frequently provide essential information or context, they become inaccessible without accompanying text alternatives.
 
 Smart Caption AI is a Chrome extension that generates image captions using Large Language Models (LLMs). Its unique approach involves first summarizing the webpage content or article and then using it as context for generating image captions. This method allows the LLM to "understand" more details and relevant context for the images, resulting in more accurate and relevant image descriptions.
