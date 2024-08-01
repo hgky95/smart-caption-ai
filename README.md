@@ -12,6 +12,10 @@ The tool employs a multi-agent system:
 This innovative approach enables Smart Caption AI to provide more contextually appropriate and accurate image captions by leveraging the surrounding content of the webpage.
 Besides generating image captioning, the tool also simplify the webpage (removing ads, unnecessary information, etc) and providing Text-to-speech feature.
 
+Below is the workflow of the tool:
+
+![read-simplify-flow](https://github.com/user-attachments/assets/273595df-2b8a-4d97-9248-120d39830ec1)
+
 ## Requirements
 
 - Python 3.11
