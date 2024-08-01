@@ -1,5 +1,5 @@
 # Smart Caption AI
-This project is an implementation of a research paper in which I work with Dr. Randy Lin (Algoma University) to leverage LLMs to generate accurate and relevant image captions.
+This project is an implementation of a research paper in which I work with Dr. Randy Lin (Algoma University) to leverage LLMs to generate accurate and relevant image captions. Besides, this research paper has been accepted by the [IEEE/ICCA'24 (Sixth Edition, BUE)](https://icca-conf.info/international-conference-1) conference.
 
 ## Introduction
 Blind individuals and those with severe vision impairments face significant challenges in navigating web content, especially with understanding images. Since images frequently provide essential information or context, they become inaccessible without accompanying text alternatives.
