@@ -78,7 +78,7 @@ class AIIntegration(Resource):
             img_tag_formatted = image_tag_prefix + ' ' + img_url['url'] + close_tag_suffix
             message = f"""
                            You have the context of the image provided by the web_surfer. 
-                           Now, you need to describe the meaning of {img_tag_formatted}. 
-                           Focus on the main content of the image and keep the description 
-                           to a maximum of three sentences."""
+                           Now, based on the given context of the image, you need to describe the image in details {img_tag_formatted}.
+                           Besides with describing the image, you also need to mentioned the context of this image. 
+                           Keep the description to a maximum of four sentences."""
             chat_queues.append(Chat(image_agent, message, False).toDict())
