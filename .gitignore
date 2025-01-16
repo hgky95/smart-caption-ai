@@ -1,8 +1,9 @@
 .idea
-virtual-env
+.venv
 server/.cache/
 server/.env
 server/logs.db
 server/resources/__pycache__
 read-simplify.iml
 workspace.xml
+__init__.cpython-312.pyc
