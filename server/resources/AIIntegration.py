@@ -1,8 +1,7 @@
 import autogen
 from flask import request
 from autogen.agentchat.contrib.multimodal_conversable_agent import MultimodalConversableAgent
-from autogen.agentchat.contrib.web_surfer import WebSurferAgent
-
+from autogen.agentchat.assistant_agent import AssistantAgent
 from flask_restful import Resource
 
 from .AIConfiguration import AIConfiguration
@@ -16,7 +15,7 @@ class AIIntegration(Resource):
         start_time = time.time()
 
         data = request.get_json()
-        article_url = data['article_url']
+        article_content = data['article_content']
         images_url = data['images_url']
 
         # Start logging
@@ -24,13 +23,13 @@ class AIIntegration(Resource):
         print("Logging session ID: " + str(logging_session_id))
 
         # Create agents
-        web_surfer = self.create_web_surfer_agent()
+        summarizer_agent = self.create_content_summarizer_agent()
         image_agent = self.create_image_agent()
         user_proxy = self.create_user_proxy_agent()
 
         # Create chat queues
         chat_queues = []
-        summary_chat = Chat(web_surfer, f"Summarize the content of this website {article_url}", False).toDict()
+        summary_chat = Chat(summarizer_agent, f"Summarize the main content of the HTML: {article_content}", False).toDict()
         chat_queues.append(summary_chat)
         self.add_image_chat_to_queues(chat_queues, image_agent, images_url)
         chat_results = user_proxy.initiate_chats(chat_queues)
@@ -63,13 +62,13 @@ class AIIntegration(Resource):
         )
         return image_agent
 
-    def create_web_surfer_agent(self):
-        web_surfer = WebSurferAgent(
-            "web_surfer",
-            llm_config=AIConfiguration.web_surfer_llm_config,
-            summarizer_llm_config=AIConfiguration.summarizer_llm_config,
+    def create_content_summarizer_agent(self):
+        summarizer_agent = AssistantAgent(
+            name="content-summarizer",
+            llm_config=AIConfiguration.content_summarizer_config,
+            system_message=AIConfiguration.content_summarizer_system_message
         )
-        return web_surfer
+        return summarizer_agent
 
     def add_image_chat_to_queues(self, chat_queues, image_agent, images_url):
         image_tag_prefix = '<img'

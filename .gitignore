@@ -1,5 +1,7 @@
 .idea
 .venv
+.cache/
+logs.db
 server/.cache/
 server/.env
 server/logs.db

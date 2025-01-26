@@ -2,47 +2,35 @@ import autogen
 
 
 class AIConfiguration:
-    config_list_3 = autogen.config_list_from_dotenv(
+    content_summarizer_system_message = """
+        You are an expert at analyzing and summarizing HTML content.
+                Your tasks:
+                1. Extract the main textual content from HTML, ignoring navigation, headers, footers, and other boilerplate
+                2. Provide a clear, concise summary of the main content
+                3. Identify and preserve key information like titles, dates, and main topics
+                4. Ignore HTML tags and formatting in your summary
+                Please provide summaries that are coherent and well-structured."""
+
+    config_list = autogen.config_list_from_dotenv(
         dotenv_file_path="server/.env",
-        # model_api_key_map={"gpt-3.5-turbo": "OPENAI_API_KEY"},
-        model_api_key_map={"gpt-4o": "OPENAI_API_KEY"},
+        model_api_key_map={"gpt-4o-mini": "OPENAI_API_KEY"},
         filter_dict={
             "model": {
-                # "gpt-3.5-turbo",
-                "gpt-4o",
-            }
-        }
-    )
-
-    web_surfer_llm_config = {
-        "timeout": 600,
-        "cache_seed": 11,
-        "config_list": config_list_3,
-        "temperature": 0,
-    }
-
-    summarizer_llm_config = {
-        "timeout": 600,
-        "cache_seed": 33,
-        "config_list": config_list_3,
-        "temperature": 0,
-    }
-
-    config_list_4 = autogen.config_list_from_dotenv(
-        dotenv_file_path="server/.env",
-        #model_api_key_map={"gpt-4-turbo": "OPENAI_API_KEY"},
-        model_api_key_map={"gpt-4o": "OPENAI_API_KEY"},
-        filter_dict={
-            "model": {
-                #"gpt-4-turbo",
-                "gpt-4o",
+                "gpt-4o-mini",
             }
         }
     )
 
     image_llm_config = {
-        "config_list": config_list_4,
+        "config_list": config_list,
         "temperature": 0.5,
         "max_tokens": 500,
+        "cache_seed": 42
+    }
+
+    content_summarizer_config = {
+        "config_list": config_list,
+        "temperature": 0,
+        "max_tokens": 1000,
         "cache_seed": 42
     }
