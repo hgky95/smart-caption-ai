@@ -3,10 +3,8 @@
   "name": "SmartCaption AI",
   "version": "1.0",
   "description": "Generating image captions that are more accurate and relevant to the content of the webpage you are reading.",
-  "permissions": [
-    "activeTab",
-    "scripting"
-  ],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["http://127.0.0.1:5000/*"],
   "background": {
     "service_worker": "background.js"
   },

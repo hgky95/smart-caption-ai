@@ -104,18 +104,22 @@ async function createIframeWithModifiedContent() {
     iframe.contentDocument.write(iframeContent);
     iframe.contentDocument.close();
 
-    // Wait for the iframe content to be fully loaded
-    iframe.onload = () => {
-      const speakButton = iframe.contentDocument.getElementById("tts");
-      // disable speak button by default until the image summarization returning
-      speakButton.disabled = true;
-      speakButton.addEventListener("click", () => {
-        textToSpeech();
-        const ttsControls =
-          iframe.contentDocument.getElementById("tts-controls");
-        ttsControls.style.display = "block";
-      });
-    };
+    // Wait for iframe to load
+    await new Promise((resolve) => {
+      iframe.onload = () => {
+        console.log("Iframe fully loaded");
+        resolve();
+      };
+    });
+
+    const speakButton = iframe.contentDocument.getElementById("tts");
+    // disable speak button by default until the image summarization returning
+    speakButton.disabled = true;
+    speakButton.addEventListener("click", () => {
+      textToSpeech();
+      const ttsControls = iframe.contentDocument.getElementById("tts-controls");
+      ttsControls.style.display = "block";
+    });
 
     return cleanedArticle.content;
   } catch (error) {
@@ -214,13 +218,15 @@ function convertImagesToText(htmlContent) {
   console.log(request_body.length);
   console.log("Calling backend to convert image to text");
 
-  fetch(BACKEND_HOST + API, requestOptions)
-    .then((response) => response.json())
-    .then((result) => {
-      const imageSummaries = result.data.map((element) => element.summary);
-      updateImageAlts(imageSummaries);
-    })
-    .catch((error) => console.error("Error processing images:", error));
+  // fetch(BACKEND_HOST + API, requestOptions)
+  //   .then((response) => response.json())
+  //   .then((result) => {
+  //     const imageSummaries = result.data.map((element) => element.summary);
+  //     updateImageAlts(imageSummaries);
+  //   })
+  //   .catch((error) => console.error("Error processing images:", error));
+  const imageSummaries = ["test", "test", "test", "test"];
+  updateImageAlts(imageSummaries);
 }
 
 let currentUtterance;
@@ -279,10 +285,135 @@ function textToSpeech() {
   synth.speak(currentUtterance);
 }
 
+function handleFeedbackSubmission(form, modal, isRequired) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const feedback = {
+      satisfaction: form.querySelector("#satisfaction").value,
+      improvements: form.querySelector("#improvements").value,
+      issues: form.querySelector("#issues").value,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Send feedback to background script
+    chrome.runtime.sendMessage(
+      { action: "submitFeedback", feedback },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Feedback error:", chrome.runtime.lastError);
+          return;
+        }
+        modal.remove();
+      }
+    );
+  });
+
+  // For required feedback, prevent closing until submitted
+  if (isRequired) {
+    const closeButtons = modal.querySelectorAll(".close-modal");
+    closeButtons.forEach((btn) => (btn.style.display = "none"));
+  }
+}
+
+function createFeedbackModal(isRequired) {
+  const iframe = document.getElementById("iframeContainer");
+  if (!iframe) {
+    console.error("Iframe not found");
+    return;
+  }
+  const iframeDocument =
+    iframe.contentDocument || iframe.contentWindow.document;
+
+  if (!iframeDocument || !iframeDocument.body) {
+    console.error("Iframe document not ready");
+    return;
+  }
+  console.log("Creating modal in iframe");
+
+  const modal = iframeDocument.createElement("div");
+  modal.className = "feedback-container";
+  modal.innerHTML = `
+    <div class="feedback-overlay">
+      <div class="feedback-modal">
+        <div class="modal-header">
+          <h2>We Value Your Feedback! ${isRequired ? "(Required)" : ""}</h2>
+          ${!isRequired ? '<span class="close-modal">&times;</span>' : ""}
+        </div>
+        <form class="feedback-form">
+          <div class="form-group">
+            <label>How satisfied are you with our tool?</label>
+            <textarea id="satisfaction" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>What improvements would you suggest?</label>
+            <textarea id="improvements" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Any technical issues encountered?</label>
+            <textarea id="issues" required></textarea>
+          </div>
+          <button type="submit">Submit Feedback</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Handle form submission
+  const form = modal.querySelector("form");
+  handleFeedbackSubmission(form, modal, isRequired);
+
+  // Add close handler for optional feedback
+  if (!isRequired) {
+    modal.querySelector(".close-modal").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modal.remove();
+    });
+  }
+
+  // Prevent clicks on overlay from bubbling
+  modal.querySelector(".feedback-overlay").addEventListener("click", (e) => {
+    if (e.target === modal.querySelector(".feedback-overlay")) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isRequired) {
+        modal.remove();
+      }
+    }
+  });
+
+  // Add modal to iframe
+  const container = iframeDocument.documentElement; // Append to root element
+
+  if (container) {
+    container.appendChild(modal);
+    console.log("Modal added to container");
+  } else {
+    console.error("Could not find container");
+  }
+}
+
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "createIframe") {
     const htmlContent = await createIframeWithModifiedContent();
     convertImagesToText(htmlContent);
+    // Store the feedback request if it came before iframe was ready
+    if (window.pendingFeedbackRequest) {
+      createFeedbackModal(window.pendingFeedbackRequest.isRequired);
+      window.pendingFeedbackRequest = null;
+    }
+  } else if (message.action === "showFeedback") {
+    console.log("Received showFeedback message");
+    const iframe = document.getElementById("iframeContainer");
+    if (iframe && iframe.contentDocument.readyState === "complete") {
+      createFeedbackModal(message.isRequired);
+    } else {
+      // Store the request for later
+      window.pendingFeedbackRequest = message;
+      console.log("Iframe not ready, storing feedback request");
+    }
   }
 });
