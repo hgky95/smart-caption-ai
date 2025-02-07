@@ -277,16 +277,13 @@ function handleFeedbackSubmission(form, modal, isRequired) {
     e.preventDefault();
     e.stopPropagation();
 
-    const feedback = {
-      satisfaction: form.querySelector("#satisfaction").value,
-      improvements: form.querySelector("#improvements").value,
-      issues: form.querySelector("#issues").value,
-      timestamp: new Date().toISOString(),
+    const data = {
+      feedback: form.querySelector("#improvements").value,
+      email: form.querySelector("#email").value,
     };
 
-    // Send feedback to background script
     chrome.runtime.sendMessage(
-      { action: "submitFeedback", feedback },
+      { action: "submitFeedback", data },
       (response) => {
         modal.remove();
         if (chrome.runtime.lastError) {
@@ -323,26 +320,46 @@ function createFeedbackModal(isRequired) {
   const modal = iframeDocument.createElement("div");
   modal.className = "feedback-container";
   modal.innerHTML = `
-    <div class="feedback-overlay">
+    <div class="feedback-overlay" role="dialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description">
       <div class="feedback-modal">
         <div class="modal-header">
-          <h2>We Value Your Feedback! ${isRequired ? "(Required)" : ""}</h2>
-          ${!isRequired ? '<span class="close-modal">&times;</span>' : ""}
+          <h2 id="feedback-title">We Value Your Feedback! ${
+            isRequired ? "(Required)" : ""
+          }</h2>
+          ${
+            !isRequired
+              ? '<button id="close-modal" class="close-modal" aria-label="Close feedback form">&times;</button>'
+              : ""
+          }
         </div>
-        <form class="feedback-form">
+        <form class="feedback-form" role="form">
+          <p id="feedback-description">
+            Thank you for using our free SmartCaption tool! <br>
+            To help us improve, we'd appreciate your feedback. <br>
+            If you're happy to share your email (optional), we may use it to follow up or notify you about improvements. <br>
+            Your input matters!
+          </p>
           <div class="form-group">
-            <label>How satisfied are you with our tool?</label>
-            <textarea id="satisfaction" required></textarea>
+            <label for="improvements">What improvements would you suggest?</label>
+            <textarea 
+              id="improvements" 
+              name="improvements" 
+              required 
+              aria-required="true"
+              aria-label="Suggested improvements"
+            ></textarea>
           </div>
           <div class="form-group">
-            <label>What improvements would you suggest?</label>
-            <textarea id="improvements" required></textarea>
+            <label for="email">Email (Optional)</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              aria-required="false"
+              aria-label="Optional email address"
+            />
           </div>
-          <div class="form-group">
-            <label>Any technical issues encountered?</label>
-            <textarea id="issues" required></textarea>
-          </div>
-          <button type="submit">Submit Feedback</button>
+          <button type="submit" aria-label="Submit feedback">Submit Feedback</button>
         </form>
       </div>
     </div>

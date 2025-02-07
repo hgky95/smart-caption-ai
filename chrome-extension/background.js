@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     fetch(FEEDBACK_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(message.feedback),
+      body: JSON.stringify(message.data),
     })
       .then(() => {
         chrome.storage.local.set({

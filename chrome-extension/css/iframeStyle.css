@@ -112,15 +112,8 @@ i#play-pause {
 }
 
 .close-modal {
-  cursor: pointer;
   font-size: 24px;
-  padding: 10px;
   color: #666;
-  transition: color 0.2s;
-}
-
-.close-modal:hover {
-  color: #000;
 }
 
 .feedback-form .form-group {
@@ -148,6 +141,10 @@ i#play-pause {
   outline: none;
   border-color: #4caf50;
   box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.feedback-form input[type="email"] {
+  width: 300px;
 }
 
 .feedback-form button[type="submit"] {
