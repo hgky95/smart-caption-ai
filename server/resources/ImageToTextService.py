@@ -7,9 +7,15 @@ from flask_restful import Resource
 from .AIConfiguration import AIConfiguration
 from .Chat import Chat
 import time
+import os
 
 
-class AIIntegration(Resource):
+class ImageToTextService(Resource):
+
+    def __init__(self):
+        self.proxy_agent = self.create_user_proxy_agent()
+        self.image_agent = self.create_image_agent()
+        self.summarizer_agent = self.create_content_summarizer_agent()
 
     def post(self):
         start_time = time.time()
@@ -17,22 +23,22 @@ class AIIntegration(Resource):
         data = request.get_json()
         article_content = data['article_content']
         images_url = data['images_url']
+        news_source = data['news_source']
+
+        if not self.validate_news_url(news_source):
+            news_whitelist = os.getenv('NEWS_WHITELIST')
+            return {"message": f"The news source you entered is not supported at this time. We currently only support news from {news_whitelist}."}, 403
 
         # Start logging
         logging_session_id = autogen.runtime_logging.start(config={"dbname": "logs.db"})
         print("Logging session ID: " + str(logging_session_id))
 
-        # Create agents
-        summarizer_agent = self.create_content_summarizer_agent()
-        image_agent = self.create_image_agent()
-        user_proxy = self.create_user_proxy_agent()
-
         # Create chat queues
         chat_queues = []
-        summary_chat = Chat(summarizer_agent, f"Summarize the main content of the HTML: {article_content}", False).toDict()
+        summary_chat = Chat(self.summarizer_agent, f"Summarize the main content of the HTML: {article_content}", False).toDict()
         chat_queues.append(summary_chat)
-        self.add_image_chat_to_queues(chat_queues, image_agent, images_url)
-        chat_results = user_proxy.initiate_chats(chat_queues)
+        self.add_image_chat_to_queues(chat_queues, self.image_agent, images_url)
+        chat_results = self.proxy_agent.initiate_chats(chat_queues)
 
         autogen.runtime_logging.stop()
 
@@ -81,3 +87,11 @@ class AIIntegration(Resource):
                            Besides with describing the image, you also need to mentioned the context of this image. 
                            Keep the description to a maximum of four sentences."""
             chat_queues.append(Chat(image_agent, message, False).toDict())
+
+    def validate_news_url(self, news_source):
+        news_whitelist = os.getenv('NEWS_WHITELIST')
+        news_whitelist_list = news_whitelist.split(',')
+        for domain in news_whitelist_list:
+            if domain.strip() in news_source:
+                return True
+        return False

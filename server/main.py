@@ -2,8 +2,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
-
-from resources.AIIntegration import AIIntegration
+from resources.ImageToTextService import ImageToTextService
 from resources.FeedbackService import FeedbackService
 
 app = Flask(__name__)
@@ -11,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-api.add_resource(AIIntegration, '/ai/convert')
+api.add_resource(ImageToTextService, '/ai/convert')
 api.add_resource(FeedbackService, '/feedback')
 
 if __name__ == '__main__':

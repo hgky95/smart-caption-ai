@@ -24,7 +24,6 @@ function cleanArticleContent(article) {
     tempDiv.querySelectorAll(selector).forEach((el) => el.remove());
   });
 
-  // Clean attributes
   const elementsToClean = tempDiv.getElementsByTagName("*");
   for (let el of elementsToClean) {
     const attributesToKeep = ["src", "href", "alt"];
@@ -61,7 +60,6 @@ async function createIframeWithModifiedContent() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
 
-    // Apply Readability modifications
     const article = new Readability(doc).parse();
     const cleanedArticle = cleanArticleContent(article);
 
@@ -196,6 +194,7 @@ function convertImagesToText(htmlContent) {
   const request_body = JSON.stringify({
     article_content: htmlContent,
     images_url: images_url,
+    news_source: window.location.hostname,
   });
   const requestOptions = {
     method: "POST",
@@ -203,18 +202,41 @@ function convertImagesToText(htmlContent) {
     body: request_body,
   };
 
-  console.log(request_body.length);
-  console.log("Calling backend to convert image to text");
+  fetch(BACKEND_HOST + API, requestOptions)
+    .then(async (response) => {
+      if (response.status === 403) {
+        const data = await response.json();
+        const iframe = document.getElementById("iframeContainer");
+        const iframeDocument =
+          iframe.contentDocument || iframe.contentWindow.document;
 
-  // fetch(BACKEND_HOST + API, requestOptions)
-  //   .then((response) => response.json())
-  //   .then((result) => {
-  //     const imageSummaries = result.data.map((element) => element.summary);
-  //     updateImageAlts(imageSummaries);
-  //   })
-  //   .catch((error) => console.error("Error processing images:", error));
-  const imageSummaries = ["test", "test", "test", "test"];
-  updateImageAlts(imageSummaries);
+        const errorModal = iframeDocument.createElement("div");
+        errorModal.className = "error-modal";
+        errorModal.innerHTML = `
+          <div class="error-modal-content" 
+               role="alertdialog" 
+               aria-modal="true" 
+               aria-labelledby="error-title" 
+               aria-describedby="error-message">
+            <h2 id="error-title">News Source Not Supported</h2>
+            <p id="error-message">${data.message}</p>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    aria-label="Close error message">Close</button>
+          </div>
+        `;
+        iframeDocument.body.appendChild(errorModal);
+        return null;
+      }
+      return response.json();
+    })
+    .then((result) => {
+      if (!result) return;
+      const imageSummaries = result.data.map((element) => element.summary);
+      updateImageAlts(imageSummaries);
+    })
+    .catch((error) => {
+      console.error("Error processing images:", error);
+    });
 }
 
 let currentUtterance;
