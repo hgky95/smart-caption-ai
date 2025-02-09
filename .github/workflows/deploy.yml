@@ -15,12 +15,18 @@ jobs:
 
       - name: Set up SSH key
         run: |
+          if [[ -z "${{ secrets.SERVER_IP }}" ]]; then
+            echo "Error: SERVER_IP is not set" >&2
+            exit 1
+          fi
+
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          echo "Using SERVER_IP: ${{ secrets.SERVER_IP }}"
+
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
