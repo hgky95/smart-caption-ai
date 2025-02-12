@@ -3,28 +3,32 @@ const REQUIRED_FEEDBACK_COUNT = 5;
 const FEEDBACK_API = "http://127.0.0.1:5000/feedback";
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.set({ usageCount: 0 });
+  chrome.storage.local.set({
+    usageCount: 0,
+    feedbackSubmitted: false,
+  });
 });
 
 chrome.action.onClicked.addListener(async (tab) => {
-  const { usageCount } = await chrome.storage.local.get("usageCount");
-  const { feedbackSubmitted } = await chrome.storage.local.get(
-    "feedbackSubmitted"
-  );
+  const { usageCount = 0, feedbackSubmitted = false } =
+    await chrome.storage.local.get(["usageCount", "feedbackSubmitted"]);
 
-  const newCount = (usageCount || 0) + 1;
+  const newCount = usageCount + 1;
   await chrome.storage.local.set({ usageCount: newCount });
 
-  chrome.tabs.sendMessage(tab.id, { action: "createIframe" });
+  await chrome.tabs.sendMessage(tab.id, { action: "createIframe" });
 
   if (
     !feedbackSubmitted &&
-    (newCount == OPTIONAL_FEEDBACK_COUNT || newCount >= REQUIRED_FEEDBACK_COUNT)
+    (newCount === OPTIONAL_FEEDBACK_COUNT ||
+      newCount >= REQUIRED_FEEDBACK_COUNT)
   ) {
-    chrome.tabs.sendMessage(tab.id, {
-      action: "showFeedback",
-      isRequired: newCount >= REQUIRED_FEEDBACK_COUNT,
-    });
+    setTimeout(() => {
+      chrome.tabs.sendMessage(tab.id, {
+        action: "showFeedback",
+        isRequired: newCount >= REQUIRED_FEEDBACK_COUNT,
+      });
+    }, 5000);
   }
 });
 

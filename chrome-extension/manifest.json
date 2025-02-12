@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "name": "SmartCaption AI",
   "version": "1.0",
-  "description": "Generating image captions that are more accurate and relevant to the content of the webpage you are reading.",
+  "description": "Generating image captions that are more accurate and relevant to the content of the webpage, particularly for news articles.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["http://127.0.0.1:5000/*"],
+  "host_permissions": ["https://api.dilab.ca/*"],
   "background": {
     "service_worker": "background.js"
   },
