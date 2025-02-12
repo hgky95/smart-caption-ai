@@ -8,7 +8,9 @@ from .AIConfiguration import AIConfiguration
 from .Chat import Chat
 import time
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ImageToTextService(Resource):
 
@@ -25,31 +27,26 @@ class ImageToTextService(Resource):
         images_url = data['images_url']
         news_source = data['news_source']
 
+        logger.info(f"Request received for news source: {news_source} with {len(images_url)} images")
+
         if not self.validate_news_url(news_source):
             news_whitelist = os.getenv('NEWS_WHITELIST')
+            logger.error(f"The {news_source} you entered is not supported at this time. We currently only support news from {news_whitelist}.")
             return {"message": f"The news source you entered is not supported at this time. We currently only support news from {news_whitelist}."}, 403
 
-        # Start logging
-        logging_session_id = autogen.runtime_logging.start(config={"dbname": "logs.db"})
-        print("Logging session ID: " + str(logging_session_id))
-
-        # Create chat queues
         chat_queues = []
         summary_chat = Chat(self.summarizer_agent, f"Summarize the main content of the HTML: {article_content}", False).toDict()
         chat_queues.append(summary_chat)
         self.add_image_chat_to_queues(chat_queues, self.image_agent, images_url)
         chat_results = self.proxy_agent.initiate_chats(chat_queues)
 
-        autogen.runtime_logging.stop()
-
         # Only get the images summary
         chat_img_results = chat_results[1:]
-        # Format response
         chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
 
         end_time = time.time()
         consumed_time = end_time - start_time
-        print(f"Time consumed: {consumed_time} seconds")
+        logger.info(f"Time consumed: {consumed_time} seconds")
         return {"data": chat_img_summary_list}
 
     def create_user_proxy_agent(self):
@@ -80,12 +77,9 @@ class ImageToTextService(Resource):
         image_tag_prefix = '<img'
         close_tag_suffix = '>'
         for img_url in images_url:
+            logger.info(f"Adding image to chat: {img_url['url']}")
             img_tag_formatted = image_tag_prefix + ' ' + img_url['url'] + close_tag_suffix
-            message = f"""
-                           You have the context of the image provided by the web_surfer. 
-                           Now, based on the given context of the image, you need to describe the image in details {img_tag_formatted}.
-                           Besides with describing the image, you also need to mentioned the context of this image. 
-                           Keep the description to a maximum of four sentences."""
+            message = AIConfiguration.get_image_description_instructions(img_tag_formatted)
             chat_queues.append(Chat(image_agent, message, False).toDict())
 
     def validate_news_url(self, news_source):
