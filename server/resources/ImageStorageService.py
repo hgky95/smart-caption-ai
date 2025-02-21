@@ -21,6 +21,10 @@ class ImageStorageService:
                 summary = summary_dict['summary']
                 image_hash = hashlib.sha256(url.encode()).hexdigest();
 
+                if self.is_image_exists(image_hash):
+                    logger.info(f"Image already exists: {image_hash}")
+                    continue
+
                 file_extension = os.path.splitext(url)[-1].lower() or '.png'
                 image_filename = f"{image_hash}{file_extension}"
 
@@ -40,6 +44,19 @@ class ImageStorageService:
         except Exception as e:
             logger.error(f"Error storing images and its description to file and database: {e}")
 
+    def is_image_exists(self, image_hash):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM images WHERE hash_id = %s", (image_hash,))
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            return result is not None
+        except Error as e:
+            logger.error(f"Error finding image by hash: {e}")
+            return False
+    
     def store_to_db(self, image_hash, file_path, original_url, summary):
         try:
             conn = get_db_connection()
