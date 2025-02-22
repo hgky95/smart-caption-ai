@@ -3,7 +3,8 @@ from flask import request
 from autogen.agentchat.contrib.multimodal_conversable_agent import MultimodalConversableAgent
 from autogen.agentchat.assistant_agent import AssistantAgent
 from flask_restful import Resource
-
+from concurrent.futures import ThreadPoolExecutor
+from .ImageStorageService import ImageStorageService
 from .AIConfiguration import AIConfiguration
 from .Chat import Chat
 import time
@@ -18,6 +19,9 @@ class ImageToTextService(Resource):
         self.proxy_agent = self.create_user_proxy_agent()
         self.image_agent = self.create_image_agent()
         self.summarizer_agent = self.create_content_summarizer_agent()
+        self.image_storage_service = ImageStorageService()
+        self.executor = ThreadPoolExecutor(max_workers=3)
+
 
     def post(self):
         start_time = time.time()
@@ -44,10 +48,15 @@ class ImageToTextService(Resource):
         chat_img_results = chat_results[1:]
         chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
 
+        self.store_result(images_url, chat_img_summary_list)
+
         end_time = time.time()
         consumed_time = end_time - start_time
         logger.info(f"Time consumed: {consumed_time} seconds")
         return {"data": chat_img_summary_list}
+
+    def store_result(self, images_url, chat_img_summary_list):
+        self.executor.submit(self.image_storage_service.store_images_description, images_url, chat_img_summary_list)
 
     def create_user_proxy_agent(self):
         user_proxy = autogen.UserProxyAgent(

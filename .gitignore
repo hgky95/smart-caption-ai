@@ -7,7 +7,10 @@ server/.env
 server/logs.db
 server/resources/__pycache__
 server/database/__pycache__
+server/__pycache__/
 
 read-simplify.iml
 workspace.xml
 __init__.cpython-312.pyc
+
+images/
