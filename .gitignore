@@ -12,5 +12,5 @@ server/__pycache__/
 read-simplify.iml
 workspace.xml
 __init__.cpython-312.pyc
-
+deploy.sh
 images/
