@@ -1,3 +1,4 @@
+import asyncio
 import autogen
 from flask import request
 from autogen.agentchat.contrib.multimodal_conversable_agent import MultimodalConversableAgent
@@ -41,12 +42,15 @@ class ImageToTextService(Resource):
         chat_queues = []
         summary_chat = Chat(self.summarizer_agent, f"Summarize the main content of the HTML: {article_content}", False).toDict()
         chat_queues.append(summary_chat)
-        self.add_image_chat_to_queues(chat_queues, self.image_agent, images_url)
         chat_results = self.proxy_agent.initiate_chats(chat_queues)
-
-        # Only get the images summary
-        chat_img_results = chat_results[1:]
-        chat_img_summary_list = [{'summary': chat_img_result.summary.replace('\n', ' ')} for chat_img_result in chat_img_results]
+        article_summary = chat_results[0].summary
+        
+        chat_img_results = asyncio.run(self.process_images(images_url, article_summary))
+        
+        chat_img_summary_list = [
+            {'summary': chat_img_results[idx].replace('\n', ' ')} 
+            for idx in sorted(chat_img_results.keys())
+        ]
 
         self.store_result(images_url, chat_img_summary_list)
 
@@ -54,6 +58,10 @@ class ImageToTextService(Resource):
         consumed_time = end_time - start_time
         logger.info(f"Time consumed: {consumed_time} seconds")
         return {"data": chat_img_summary_list}
+    
+    async def generate_image_description(self, image_chat_queues):
+        chat_results = await self.proxy_agent.a_initiate_chats(image_chat_queues)
+        return {'summary': chat_results.summary.replace('\n', ' ')}
 
     def store_result(self, images_url, chat_img_summary_list):
         self.executor.submit(self.image_storage_service.store_images_description, images_url, chat_img_summary_list)
@@ -81,15 +89,34 @@ class ImageToTextService(Resource):
             system_message=AIConfiguration.content_summarizer_system_message
         )
         return summarizer_agent
-
-    def add_image_chat_to_queues(self, chat_queues, image_agent, images_url):
+    
+    async def process_images(self, images_url, article_summary):
+        image_chat_results = {}
         image_tag_prefix = '<img'
         close_tag_suffix = '>'
-        for img_url in images_url:
-            logger.info(f"Adding image to chat: {img_url['url']}")
-            img_tag_formatted = image_tag_prefix + ' ' + img_url['url'] + close_tag_suffix
-            message = AIConfiguration.get_image_description_instructions(img_tag_formatted)
-            chat_queues.append(Chat(image_agent, message, False).toDict())
+        
+        async def process_single_image(index, img_url):
+            try:
+                logger.info(f"Processing image: {img_url['url']}")
+                img_tag_formatted = image_tag_prefix + ' ' + img_url['url'] + close_tag_suffix
+                message = AIConfiguration.get_image_description_instructions(img_tag_formatted, article_summary)
+                              
+                await self.proxy_agent.a_send(message, self.image_agent, silent=False)
+                
+                response = await self.image_agent.a_generate_reply(sender=self.proxy_agent)
+                
+                return index, response
+            except Exception as e:
+                logger.error(f"Error processing image {img_url['url']}: {e}")
+                return index, f"Unable to generate description for image {index+1}."
+        
+        tasks = [process_single_image(index, img_url) for index, img_url in enumerate(images_url)]
+        results = await asyncio.gather(*tasks)
+        
+        for index, response in results:
+            image_chat_results[index] = response
+        
+        return image_chat_results
 
     def validate_news_url(self, news_source):
         news_whitelist = os.getenv('NEWS_WHITELIST')
