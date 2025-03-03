@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SmartCaption AI",
   "version": "1.0",
-  "description": "Generating image captions that are more accurate and relevant to the content of the webpage, particularly for news articles.",
+  "description": "Generating image captions that are more accurate and relevant to the content of the webpage, particularly for news articles. You can use the shortcut Ctrl+Shift+K (or Command+Shift+K on Mac) to activate the extension.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": ["https://api.dilab.ca/*"],
   "background": {
