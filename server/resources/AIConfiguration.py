@@ -14,11 +14,6 @@ class AIConfiguration:
     config_list = autogen.config_list_from_dotenv(
         dotenv_file_path="server/.env",
         model_api_key_map={"gpt-4o-mini": "OPENAI_API_KEY"},
-        filter_dict={
-            "model": {
-                "gpt-4o-mini",
-            }
-        }
     )
 
     image_llm_config = {
@@ -36,21 +31,20 @@ class AIConfiguration:
     }
 
     def get_image_description_instructions(img_tag_formatted, article_summary):
-        return f"""You are an Image Description Agent creating detailed descriptions for visually impaired users.
+        return f"""You are an Image Describer Agent creating detailed descriptions helping visually impaired users understand the image.
         
             IMAGE: {img_tag_formatted}
             ARTICLE CONTEXT: {article_summary}
             
-            DESCRIBE THE IMAGE IN 4 SENTENCES:
+            DESCRIBE THE IMAGE IN MAXIMUM 4 SENTENCES:
             - Overall scene description
             - Key visual details and composition
             - Specific elements and their relationships
-            - Connection to the article context
+            - Describe people, locations, or events based on the article context
             
             GUIDELINES:
             - Be precise, objective, and factual
             - Cover subject, colors, lighting, spatial relationships, and text if present
             - Describe people respectfully with relevant visual details
             - Only describe what is clearly visible
-            - Use article context to identify people, locations, or events
         """
