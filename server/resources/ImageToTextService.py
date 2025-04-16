@@ -56,7 +56,7 @@ class ImageToTextService(Resource):
             for idx in sorted(chat_img_results.keys())
         ]
 
-        # self.store_result(images_url, chat_img_summary_list)
+        self.store_result(images_url, chat_img_summary_list)
 
         end_time = time.time()
         consumed_time = end_time - start_time
@@ -140,7 +140,6 @@ class ImageToTextService(Resource):
                 logger.error(f"Failed to download restricted image: {url}")
                 return index, f"Unable to generate description for image {index+1} (download failed)."
                     
-            message = AIConfiguration.get_image_description_instructions(pil_image, article_summary)
             return AIConfiguration.get_image_description_instructions(url, article_summary)
         else:
             img_tag_formatted = image_tag_prefix + ' ' + url + close_tag_suffix
